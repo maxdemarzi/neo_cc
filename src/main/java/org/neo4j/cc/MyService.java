@@ -1,4 +1,4 @@
-package org.neo4j.example.unmanagedextension;
+package org.neo4j.cc;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.cypher.javacompat.ExecutionEngine;

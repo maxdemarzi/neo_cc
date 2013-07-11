@@ -1,14 +1,15 @@
-package org.neo4j.example.unmanagedextension;
+package org.neo4j.cc;
 
+import com.sun.jersey.api.client.Client;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.server.NeoServer;
+import org.neo4j.server.helpers.ServerBuilder;
+import org.neo4j.server.rest.JaxRsResponse;
+import org.neo4j.server.rest.RestRequest;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,18 +17,27 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class MyServiceTest {
+public class MyServiceFunctionalTest {
 
-    private ImpermanentGraphDatabase db;
-    private MyService service;
+    public static final Client CLIENT = Client.create();
+    public static final String MOUNT_POINT = "/ext";
     private ObjectMapper objectMapper = new ObjectMapper();
+
     private static final RelationshipType KNOWS = DynamicRelationshipType.withName("KNOWS");
 
-    @Before
-    public void setUp() {
-        db = new ImpermanentGraphDatabase();
-        populateDb(db);
-        service = new MyService();
+    @Test
+    public void shouldReturnFriends() throws IOException {
+        NeoServer server = ServerBuilder.server()
+                .withThirdPartyJaxRsPackage("org.neo4j.cc", MOUNT_POINT)
+                .build();
+        server.start();
+        populateDb(server.getDatabase().getGraph());
+        RestRequest restRequest = new RestRequest(server.baseUri().resolve(MOUNT_POINT), CLIENT);
+        JaxRsResponse response = restRequest.get("service/friends/B");
+        System.out.println(response.getEntity());
+        List list = objectMapper.readValue(response.getEntity(), List.class);
+        assertEquals(new HashSet<String>(Arrays.asList("A", "C")), new HashSet<String>(list));
+        server.stop();
     }
 
     private void populateDb(GraphDatabaseService db) {
@@ -57,25 +67,4 @@ public class MyServiceTest {
         return node;
     }
 
-    @After
-    public void tearDown() throws Exception {
-        db.shutdown();
-
-    }
-
-    @Test
-    public void shouldRespondToHelloWorld() {
-        assertEquals("Hello World!", service.helloWorld());
-    }
-
-    @Test
-    public void shouldQueryDbForFriends() throws IOException {
-        Response response = service.getFriends("B", db);
-        List list = objectMapper.readValue((String) response.getEntity(), List.class);
-        assertEquals(new HashSet<String>(Arrays.asList("A", "C")), new HashSet<String>(list));
-    }
-
-    public GraphDatabaseService graphdb() {
-        return db;
-    }
 }

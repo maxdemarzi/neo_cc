@@ -1,7 +1,7 @@
-Sample Neo4j unmanaged extension
+Neo4j Connected Components
 ================================
 
-This is an unmanaged extension. 
+This is an unmanaged extension that labels the connected components of a graph.
 
 1. Build it: 
 
@@ -11,11 +11,11 @@ This is an unmanaged extension.
 
 3. Configure Neo4j by adding a line to conf/neo4j-server.properties:
 
-        org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.example.unmanagedextension=/example
+        org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.cc=/cc
 
 4. Start Neo4j server.
 
 5. Query it over HTTP:
 
-        curl http://localhost:7474/example/helloworld
+        curl http://localhost:7474/cc/
 
