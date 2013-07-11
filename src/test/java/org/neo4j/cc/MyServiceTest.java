@@ -5,29 +5,41 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.test.ImpermanentGraphDatabase;
+import org.neo4j.test.TestGraphDatabaseFactory;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 public class MyServiceTest {
 
-    private ImpermanentGraphDatabase db;
+    private GraphDatabaseService db;
     private MyService service;
     private ObjectMapper objectMapper = new ObjectMapper();
     private static final RelationshipType KNOWS = DynamicRelationshipType.withName("KNOWS");
+    private static final RelationshipType HATES = DynamicRelationshipType.withName("HATES");
 
     @Before
     public void setUp() {
-        db = new ImpermanentGraphDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        dropRootNode(db);
         populateDb(db);
         service = new MyService();
+    }
+
+    private void dropRootNode(GraphDatabaseService db){
+        Transaction tx = db.beginTx();
+        try
+        {
+            Node root = db.getNodeById(0);
+            root.delete();
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
+        }
+
     }
 
     private void populateDb(GraphDatabaseService db) {
@@ -41,6 +53,34 @@ public class MyServiceTest {
             personA.createRelationshipTo(personB, KNOWS);
             personB.createRelationshipTo(personC, KNOWS);
             personC.createRelationshipTo(personD, KNOWS);
+
+            Node personAA = createPerson(db, "AA");
+            Node personAB = createPerson(db, "AB");
+            Node personAC = createPerson(db, "AC");
+            Node personAD = createPerson(db, "AD");
+            personAA.createRelationshipTo(personAB, KNOWS);
+            personAB.createRelationshipTo(personAC, KNOWS);
+            personAC.createRelationshipTo(personAD, KNOWS);
+
+            Node personCA = createPerson(db, "CA");
+            Node personCB = createPerson(db, "CB");
+            Node personCC = createPerson(db, "CC");
+            Node personCD = createPerson(db, "CD");
+
+            personCA.createRelationshipTo(personCB, KNOWS);
+            personCB.createRelationshipTo(personCC, HATES);
+            personCC.createRelationshipTo(personCD, KNOWS);
+
+            Node personDA = createPerson(db, "DA");
+            Node personDB = createPerson(db, "DB");
+            Node personDC = createPerson(db, "DC");
+            Node personDD = createPerson(db, "DD");
+
+            personDA.createRelationshipTo(personDB, HATES);
+            personDB.createRelationshipTo(personDC, HATES);
+            personDC.createRelationshipTo(personDD, HATES);
+
+
             tx.success();
         }
         finally
@@ -50,10 +90,8 @@ public class MyServiceTest {
     }
 
     private Node createPerson(GraphDatabaseService db, String name) {
-        Index<Node> people = db.index().forNodes("people");
         Node node = db.createNode();
         node.setProperty("name", name);
-        people.add(node, "name", name);
         return node;
     }
 
@@ -64,16 +102,10 @@ public class MyServiceTest {
     }
 
     @Test
-    public void shouldRespondToHelloWorld() {
-        assertEquals("Hello World!", service.helloWorld());
+    public void shouldGetConnectedComponentsCount() throws IOException {
+        assertEquals("8", service.getConnectedComponentsCount("KNOWS", db));
     }
 
-    @Test
-    public void shouldQueryDbForFriends() throws IOException {
-        Response response = service.getFriends("B", db);
-        List list = objectMapper.readValue((String) response.getEntity(), List.class);
-        assertEquals(new HashSet<String>(Arrays.asList("A", "C")), new HashSet<String>(list));
-    }
 
     public GraphDatabaseService graphdb() {
         return db;
