@@ -17,5 +17,7 @@ This is an unmanaged extension that labels the connected components of a graph.
 
 5. Query it over HTTP:
 
-        curl http://localhost:7474/ext/cc/
+        curl http://localhost:7474/ext/service/cc/KNOWS
+        or in the http console: get /ext/service/cc/KNOWS
+
 
