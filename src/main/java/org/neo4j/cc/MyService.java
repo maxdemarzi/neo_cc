@@ -25,8 +25,6 @@ import java.util.Map;
 @Path("/service")
 public class MyService {
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
     @GET
     @Path("/cc/{name}")
     public String getConnectedComponentsCount(@PathParam("name") String name, @Context GraphDatabaseService db) throws IOException {
