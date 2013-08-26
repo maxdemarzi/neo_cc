@@ -63,33 +63,3 @@ public class MyService {
         return String.valueOf(CCid);
     }
 }
-
-/*
-Iterable<Node> allNodes = graphDbService.getAllNodes();
-> > >> >        ArrayList labelled = new ArrayList();
-> > >> >        for (Node currentNode : allNodes) {
-        > > >> >            if (currentNode.hasProperty("number") &&
-        > > >> > !labelled.contains(currentNode.getId())) {
-        > > >> >                Traverser traverser =
-        > > >> > currentNode.traverse(Order.BREADTH_FIRST,
-        > > >> >                        StopEvaluator.END_OF_GRAPH,
-        > > >> >                        ReturnableEvaluator.ALL_BUT_START_NODE,
-        > > >> >                        RelTypes.CALLS, Direction.BOTH);
-> > >> >                int currentID = initialID;
-> > >> >                initialID++;
-> > >> >                currentNode.setProperty("componentID", currentID);
-> > >> >                labelled.add(currentNode.getId());
-> > >> >                for (Node friend : traverser) {
-        > > >> >                    friend.setProperty("componentID", currentID);
-> > >> >                    // mark each node as labelled
-        > > >> >                    labelled.add(friend.getId());
-> > >> >                }
-        > > >> >           }
-        > > >> >     }
-
-Would it be possible for you to replace
-> > >> the !labelled.contains(currentNode.getId())-check with
-> > >> currentNode.getProperty("componentID",null) == null? Or are there
-> > >> situations
-> > >> where the node could have that property and not be considered labeled?
-*/
